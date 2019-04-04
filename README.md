@@ -1,3 +1,16 @@
+# Fork Description
+
+## differences from original source
+
+ * the oficial image is now used
+
+## dependency on build/run-time environemnt
+
+ The **DOCKER_REGISTRY** environment variable has to be set.
+
+---
+
+
 # This project is no longer maintained
 
 As of November 7th, 2018, I've decided to end my commitment to maintaining this repo and related.

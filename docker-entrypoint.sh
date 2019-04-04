@@ -2,7 +2,7 @@
 
 echo "Starting Elasticsearch ${ES_VERSION}"
 
-BASE=/elasticsearch
+BASE=/usr/share/elasticsearch
 
 # Allow for memlock if enabled
 if [ "${MEMORY_LOCK}" == "true" ]; then
@@ -58,13 +58,17 @@ export NODE_NAME=${NODE_NAME}
 rm -rf /elasticsearch/modules/x-pack/x-pack-ml
 rm -rf /elasticsearch/modules/x-pack-ml
 
+# test
+find / -name java  -exec ls -lad {} \;
+set
+
 # Run
 if [[ $(whoami) == "root" ]]; then
     if [ ! -d "/data/data/nodes/0" ]; then
         echo "Changing ownership of /data folder"
         chown -R elasticsearch:elasticsearch /data
     fi
-    exec su-exec elasticsearch $BASE/bin/elasticsearch $ES_EXTRA_ARGS
+    su - elasticsearch -c "JAVA_HOME=${JAVA_HOME} exec $BASE/bin/elasticsearch $ES_EXTRA_ARGS"
 else
     # The container's first process is not running as 'root', 
     # it does not have the rights to chown. However, we may
