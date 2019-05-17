@@ -18,7 +18,7 @@ push:
 
 test:
 	-mkdir testdata.d
-	docker run --name elasticsearch_test  -v `pwd`/testdata.d:/data \
+	docker run -d --name elasticsearch_test  -v `pwd`/testdata.d:/data \
 		-p 9200:9200 -p 9300:9300 \
 		${IMAGE_NAME}:${TAG_DATE}
 
