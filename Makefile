@@ -31,3 +31,6 @@ loc_client_test:
 	clear
 	curl -XGET 'localhost:9200/sampleindex/_search?size=10&q=*:*'
 
+loc_kibana_test:
+	docker run --name loc_kibana -p 5601:5601 -e "ELASTICSEARCH_URL=http://${ELASTICSRVR}:9200" docker.elastic.co/kibana/kibana:${TAG_NAME}
+
