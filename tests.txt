@@ -1,0 +1,129 @@
+
+curl -X POST -H "Content-Type: application/json" -H "Cache-Control: no-cache" -d \
+    '{"post_date" : "2019-05-23T12:30:00", "branch" : "Branch 1", "message" : "login"}' \
+    "http://localhost:9200/lab/hq/"
+curl -X POST -H "Content-Type: application/json" -H "Cache-Control: no-cache" -d \
+    '{"post_date" : "2019-05-23T12:30:07", "branch" : "Branch 1", "message" : "logout"}' \
+    "http://localhost:9200/lab/hq/"
+curl -X POST -H "Content-Type: application/json" -H "Cache-Control: no-cache" -d \
+    '{"post_date" : "2019-05-23T12:30:01", "branch" : "Branch 2", "message" : "login"}' \
+    "http://localhost:9200/lab/hq/"
+curl -X POST -H "Content-Type: application/json" -H "Cache-Control: no-cache" -d \
+    '{"post_date" : "2019-05-23T12:30:12", "branch" : "Branch 2", "message" : "logout"}' \
+    "http://localhost:9200/lab/hq/"
+curl -X POST -H "Content-Type: application/json" -H "Cache-Control: no-cache" -d \
+    '{"post_date" : "2019-05-23T12:30:00", "branch" : "Branch 3", "message" : "login"}' \
+    "http://localhost:9200/lab/hq/"
+curl -X POST -H "Content-Type: application/json" -H "Cache-Control: no-cache" -d \
+    '{"post_date" : "2019-05-23T12:30:09", "branch" : "Branch 3", "message" : "logout"}' \
+    "http://localhost:9200/lab/hq/"
+
+
+
+# sort funguje
+curl -XGET 'localhost:9200/lab/_search?size=10&sort=post_date&q=*:*'; echo
+
+
+
+# formatovany vystup z dotazu:
+{  
+   "took":3997,
+   "timed_out":false,
+   "_shards":{  
+      "total":5,
+      "successful":5,
+      "skipped":0,
+      "failed":0
+   },
+   "hits":{  
+      "total":6,
+      "max_score":null,
+      "hits":[  
+         {  
+            "_index":"lab",
+            "_type":"hq",
+            "_id":"aId-1GoB_Aa3uPeorwJL",
+            "_score":null,
+            "_source":{  
+               "post_date":"2019-05-23T12:30:00",
+               "branch":"Branch 3",
+               "message":"login"
+            },
+            "sort":[  
+               1558614600000
+            ]
+         },
+         {  
+            "_index":"lab",
+            "_type":"hq",
+            "_id":"ZId91GoB_Aa3uPeo6gJ3",
+            "_score":null,
+            "_source":{  
+               "post_date":"2019-05-23T12:30:00",
+               "branch":"Branch 1",
+               "message":"login"
+            },
+            "sort":[  
+               1558614600000
+            ]
+         },
+         {  
+            "_index":"lab",
+            "_type":"hq",
+            "_id":"Zod-1GoB_Aa3uPeoSwLA",
+            "_score":null,
+            "_source":{  
+               "post_date":"2019-05-23T12:30:01",
+               "branch":"Branch 2",
+               "message":"login"
+            },
+            "sort":[  
+               1558614601000
+            ]
+         },
+         {  
+            "_index":"lab",
+            "_type":"hq",
+            "_id":"ZYd-1GoB_Aa3uPeoEAJ4",
+            "_score":null,
+            "_source":{  
+               "post_date":"2019-05-23T12:30:07",
+               "branch":"Branch 1",
+               "message":"logout"
+            },
+            "sort":[  
+               1558614607000
+            ]
+         },
+         {  
+            "_index":"lab",
+            "_type":"hq",
+            "_id":"aYd-1GoB_Aa3uPeo6gLw",
+            "_score":null,
+            "_source":{  
+               "post_date":"2019-05-23T12:30:09",
+               "branch":"Branch 3",
+               "message":"logout"
+            },
+            "sort":[  
+               1558614609000
+            ]
+         },
+         {  
+            "_index":"lab",
+            "_type":"hq",
+            "_id":"Z4d-1GoB_Aa3uPeofAI2",
+            "_score":null,
+            "_source":{  
+               "post_date":"2019-05-23T12:30:12",
+               "branch":"Branch 2",
+               "message":"logout"
+            },
+            "sort":[  
+               1558614612000
+            ]
+         }
+      ]
+   }
+}
+
