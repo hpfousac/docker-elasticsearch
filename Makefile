@@ -26,3 +26,11 @@ kill_test:
 	-docker kill elasticsearch_test
 	-docker rm elasticsearch_test
 
+loc_client_test:
+	curl -X POST -H "Content-Type: application/json" -H "Cache-Control: no-cache" -d '{"user" : "Test User", "post_date" : "2019-03-23T12:30:00", "message" : "trying out Elasticsearch"}' "http://localhost:9200/sampleindex/sampletype/"
+	clear
+	curl -XGET 'localhost:9200/sampleindex/_search?size=10&q=*:*'
+
+loc_kibana_test:
+	docker run --name loc_kibana -p 5601:5601 -e "ELASTICSEARCH_URL=http://${ELASTICSRVR}:9200" docker.elastic.co/kibana/kibana:${TAG_NAME}
+
