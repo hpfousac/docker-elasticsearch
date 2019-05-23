@@ -5,13 +5,13 @@
 elasticsearch:
   image:
     repository: hpfousac/docker-elasticsearch
-    tag: 6.7.0
+    tag: 6.8.0
     pullPolicy: IfNotPresent
 
 kibana:
   image:
     repository: docker.elastic.co/kibana/kibana
-    tag: 6.7.0
+    tag: 6.8.0
     pullPolicy: IfNotPresent
 
 replicaCount: 1
