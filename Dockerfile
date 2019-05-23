@@ -1,10 +1,10 @@
-FROM elasticsearch:6.7.0
+FROM elasticsearch:6.8.0
 MAINTAINER hpfousac@gmail.com
 
 # Export HTTP & Transport
 EXPOSE 9200 9300
 
-ENV ES_VERSION 6.7.0
+ENV ES_VERSION 6.8.0
 
 ENV PATH /elasticsearch/bin:$PATH
 

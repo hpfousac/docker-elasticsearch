@@ -1,6 +1,6 @@
 IMAGE_NAME = hpfousac/docker-elasticsearch
-TAG_NAME   = 6.7.0
-TAG_DATE   = d20190404
+TAG_NAME   = 6.8.0
+TAG_DATE   = d20190523
 
 
 refresh:
