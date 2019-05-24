@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "single-elasticsearch.fullname" . }}
+  name: {{ include "single-elasticsearch.fullname" . }}-elastic
   labels:
     app.kubernetes.io/name: {{ include "single-elasticsearch.name" . }}
     helm.sh/chart: {{ include "single-elasticsearch.chart" . }}
@@ -21,11 +21,11 @@ spec:
     spec:
       containers:
         - name: {{ .Chart.Name }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          image: "{{ .Values.elasticsearch.image.repository }}:{{ .Values.elasticsearch.image.tag }}"
+          imagePullPolicy: {{ .Values.elasticsearch.image.pullPolicy }}
           ports:
             - name: http
-              containerPort: 80
+              containerPort: 9200
               protocol: TCP
           livenessProbe:
             httpGet:
