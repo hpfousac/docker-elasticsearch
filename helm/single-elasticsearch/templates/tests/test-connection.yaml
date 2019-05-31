@@ -11,8 +11,12 @@ metadata:
     "helm.sh/hook": test-success
 spec:
   containers:
-    - name: wget
+    - name: wget-elastic
       image: busybox
       command: ['wget']
-      args:  ['{{ include "single-elasticsearch.fullname" . }}:{{ .Values.service.port }}']
+      args:  ['{{ include "single-elasticsearch.fullname" . }}-elastic:{{ .Values.elasticsearch.service.port }}']
+    - name: wget-kibana
+      image: busybox
+      command: ['wget']
+      args:  ['{{ include "single-elasticsearch.fullname" . }}-kibana:{{ .Values.kibana.service.port }}']
   restartPolicy: Never
