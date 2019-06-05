@@ -26,9 +26,17 @@ spec:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.elasticsearch.image.repository }}:{{ .Values.elasticsearch.image.tag }}"
           imagePullPolicy: {{ .Values.elasticsearch.image.pullPolicy }}
+          env:
+            - name: discovery.type
+              value: single-node
+            - name: xpack.security.enabled
+              value: "false"
           ports:
-            - name: http
+            - name: http9200
               containerPort: 9200
+              protocol: TCP
+            - name: http9300
+              containerPort: 9300
               protocol: TCP
 #         livenessProbe:
 #           httpGet:
