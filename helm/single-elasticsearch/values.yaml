@@ -5,7 +5,7 @@
 elasticsearch:
   image:
     repository: sgc-minikube:5000/hpfousac/docker-elasticsearch
-    tag: 6.8.0
+    tag: 7.1.1
     pullPolicy: Always
   service:
     type: ClusterIP
@@ -14,7 +14,7 @@ elasticsearch:
 kibana:
   image:
     repository: docker.elastic.co/kibana/kibana
-    tag: 6.8.0
+    tag: 7.1.1
     pullPolicy: Always
   service:
     type: NodePort
