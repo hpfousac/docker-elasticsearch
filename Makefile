@@ -1,4 +1,5 @@
-IMAGE_NAME = hpfousac/docker-elasticsearch
+IMAGE_SHORTNAME = docker-elasticsearch
+IMAGE_NAME = hpfousac/${IMAGE_SHORTNAME}
 TAG_NAME   = 7.1.1
 TAG_DATE   = d20190605
 
@@ -15,6 +16,12 @@ push:
 	docker push ${DOCKER_REGISTRY}/${IMAGE_NAME}:${TAG_NAME}
 	docker push ${DOCKER_REGISTRY}/${IMAGE_NAME}:${TAG_DATE}
 	docker push ${DOCKER_REGISTRY}/${IMAGE_NAME}:latest
+
+save:
+	docker save ${IMAGE_NAME}:${TAG_DATE} > ${IMAGE_SHORTNAME}-${TAG_DATE}.dimg
+	-rm ${IMAGE_SHORTNAME}-${TAG_DATE}.dimg.xz
+	xz ${XZ_COMPRESS_LEVEL} ${IMAGE_SHORTNAME}-${TAG_DATE}.dimg
+	echo gsutil cp ${IMAGE_SHORTNAME}-${TAG_DATE}.dimg.xz ${GS_ROOT}/${IMAGE_NAME}-${TAG_DATE}.dimg.xz
 
 test:
 	-mkdir testdata.d
