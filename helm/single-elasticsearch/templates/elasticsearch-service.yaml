@@ -11,9 +11,10 @@ spec:
   type: {{ .Values.elasticsearch.service.type }}
   ports:
     - port: {{ .Values.elasticsearch.service.port }}
-      targetPort: http
+      targetPort: http9200
       protocol: TCP
-      name: http
+      name: http9200
   selector:
     app.kubernetes.io/name: {{ include "single-elasticsearch.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
+    component: elasticsearch

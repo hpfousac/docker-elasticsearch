@@ -7,6 +7,7 @@ metadata:
     helm.sh/chart: {{ include "single-elasticsearch.chart" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
+    component: kibana
 spec:
   type: {{ .Values.kibana.service.type }}
   ports:
@@ -18,3 +19,4 @@ spec:
   selector:
     app.kubernetes.io/name: {{ include "single-elasticsearch.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
+    component: kibana
