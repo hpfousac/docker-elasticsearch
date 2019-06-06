@@ -23,18 +23,21 @@ spec:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.kibana.image.repository }}:{{ .Values.kibana.image.tag }}"
           imagePullPolicy: {{ .Values.kibana.image.pullPolicy }}
+          env:
+          - name: ELASTICSEARCH_HOSTS
+            value: http://{{ include "single-elasticsearch.fullname" . }}-elastic:9200
           ports:
             - name: http
               containerPort: 5601
               protocol: TCP
-          livenessProbe:
-            httpGet:
-              path: /
-              port: http
-          readinessProbe:
-            httpGet:
-              path: /
-              port: http
+#         livenessProbe:
+#           httpGet:
+#             path: /
+#             port: http
+#         readinessProbe:
+#           httpGet:
+#             path: /
+#             port: http
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}
