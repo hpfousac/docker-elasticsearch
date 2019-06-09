@@ -1,0 +1,18 @@
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: {{ include "single-elasticsearch.fullname" . }}-elasticdata
+  labels:
+    app.kubernetes.io/name: {{ include "single-elasticsearch.name" . }}
+    helm.sh/chart: {{ include "single-elasticsearch.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    component: elasticsearch
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: {{ .Values.elasticsearch.data_space }}
+
+
