@@ -48,12 +48,12 @@ for cnt, line in enumerate(fp):
 #   print("Line {}: {}".format(cnt, line.strip()))
 #   cnt += 1
     response = requests.post(url, data=line, headers=headers)
-#   print (response.status_code)
+    print (response.status_code)
     if 201 == response.status_code:
         if True == flag_verbose:
             print ("OK")
     else:
-        print ("ERR")
+        print ("ERR:" + line)
         frej.write (line)
 
 fp.close ()

@@ -1,4 +1,4 @@
-FROM elasticsearch:7.1.1
+FROM elasticsearch:6.8.0
 MAINTAINER hpfousac@gmail.com
 
 # Export HTTP & Transport
