@@ -8,11 +8,13 @@ flag_verbose = False
 elastic_server = "localhost"
 elastic_port = "9200"
 batch_size   = 20
+ingest_pipeline = ""
 
 #print 'ARGV      :', sys.argv[1:]
 options, remainder = getopt.getopt(sys.argv[1:], 'f:s:p:i:v', ['input-fn=', 
                                                          'elastic-server=',
                                                          'elastic-port=', 'port=',
+                                                         'ingest-pipeline=', 'pipeline=',
                                                          'elastic-index=',
                                                          'verbose'
                                                          ])
@@ -25,6 +27,8 @@ for opt, arg in options:
         elastic_server = arg
     elif opt in ('-p', '--port', '--elastic-port'):
         elastic_port = arg
+    elif opt in ('--ingest-pipeline', '--pipeline'):
+        ingest_pipeline = arg
     elif opt in ('-i', '--elastic-index'):
         elastic_index = arg
     elif opt in ('-v', '--verbose'):
@@ -32,7 +36,14 @@ for opt, arg in options:
 
 rejected_fn = input_fn + ".rej"
 
-url = "http://" + elastic_server + ":" + elastic_port + "/" + elastic_index + "/_doc/_bulk"
+
+if "" == ingest_pipeline:
+	url = "http://" + elastic_server + ":" + elastic_port + "/" + elastic_index + "/_doc/_bulk"
+else:
+	url = "http://" + elastic_server + ":" + elastic_port + "/" + elastic_index + "/_doc/_bulk?pipeline=" + ingest_pipeline
+
+print url
+
 
 headers = {"Content-Type": "application/json", "Cache-Control": "no-cache"}
 
