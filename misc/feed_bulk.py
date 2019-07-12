@@ -7,7 +7,7 @@ import requests
 flag_verbose = False
 elastic_server = "localhost"
 elastic_port = "9200"
-batch_size   = 20
+batch_size   = 100
 
 #print 'ARGV      :', sys.argv[1:]
 options, remainder = getopt.getopt(sys.argv[1:], 'f:s:p:i:v', ['input-fn=', 
