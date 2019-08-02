@@ -42,7 +42,7 @@ if "" == ingest_pipeline:
 else:
 	url = "http://" + elastic_server + ":" + elastic_port + "/" + elastic_index + "/_doc/_bulk?pipeline=" + ingest_pipeline
 
-print url
+print (url)
 
 
 headers = {"Content-Type": "application/json", "Cache-Control": "no-cache"}
@@ -61,8 +61,8 @@ for cnt, line in enumerate(fp):
 #   print("Line {}: {}".format(cnt, line.strip()))
     bulk_string = bulk_string + "\n" + line
     if 0 == (cnt % batch_size):
-        print "Send at line:" + str(cnt)
-        print bulk_string
+        print ("Send at line:" + str(cnt))
+        print (bulk_string)
         response = requests.post(url, data=bulk_string, headers=headers)
         bulk_string = index_line
     else:
@@ -77,8 +77,8 @@ for cnt, line in enumerate(fp):
 #       print ("ERR:" + line)
 #       frej.write (line)
 
-print "Send at line:" + str(cnt)
-print bulk_string
+print ("Send at line:" + str(cnt))
+print (bulk_string)
 
 fp.close ()
 frej.close ()
