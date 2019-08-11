@@ -17,6 +17,9 @@ TMP_DIR=/tmp
 DATESTRING=
 COLLECTOR_HOST=`hostname`
 
+BEGIN_HOUR=0
+END_HOUR=24
+
 info_msg () {
 	if [ ! ${FLAG_VERBOSE} = 0 ] ; then
 		echo '** INFO **:' $*
@@ -35,11 +38,19 @@ Usage:
 EOT
 }
 
-while getopts "P:S:c:vs:m:w:t:h?" opt; do
+while getopts "B:E:P:S:c:vs:m:w:t:h?" opt; do
   case $opt in
     h)
       usage
       exit 0
+      ;;
+    B)
+      BEGIN_HOUR=$OPTARG
+      info_msg BEGIN_HOUR=${BEGIN_HOUR}
+      ;;
+    E)
+      END_HOUR=$OPTARG
+      info_msg END_HOUR=$END_HOUR
       ;;
     P)
       ELASTIC_PORT=$OPTARG
@@ -122,9 +133,9 @@ fi
 INGEST_PIPELINE=tcpdump_pipeline
 
 for IFACE in xl0 re0 gif0 ;  do
-	HOUR=0
+	HOUR=${BEGIN_HOUR}
 	echo ${IFACE}
-	while [ ${HOUR} -lt 24 ] ; do
+	while [ ${HOUR} -lt ${END_HOUR} ] ; do
 		FILE_HOUR=`printf '%02d' ${HOUR}`
 		for FULL_JSON_XZ in `ls ${SOURCE_DIR}/tcpdump-${DATESTRING}-${FILE_HOUR}*-${IFACE}.json.xz` ; do
 			JSON_XZ=`basename ${FULL_JSON_XZ}` 
