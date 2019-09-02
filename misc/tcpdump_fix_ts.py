@@ -54,10 +54,9 @@ bulk_string = index_line
 
 #print line
 
-
 startsecs = 0
 endsecs   = 3600 * 24
-secsincrement = 10
+secsincrement = 5
 
 def tsstring(YYYY, MM, DD, daysecs):
 	S = daysecs % 60
@@ -66,11 +65,15 @@ def tsstring(YYYY, MM, DD, daysecs):
 	return '{}-{}-{}T{:02d}:{:02d}:{:02d}'.format(YYYY, MM, DD, H, M, S)
 
 for secs in range(startsecs, endsecs, secsincrement):
+	offset = 0
+	cancontinue = 1
 #	print (secs)
 #	print tsstring(YYYY, MM, DD, secs)
 
-	query_string = """{
-  "size" : 1000,
+	while 0 != cancontinue:
+		query_string = """{
+  "size" : """ + str(batch_size) + """,
+  "from" : """ + str(offset) + """,
   "stored_fields": [ "_index", "_id" ],
   "_source": [ "timestamp", "line" ],
   "query": {
@@ -90,17 +93,24 @@ for secs in range(startsecs, endsecs, secsincrement):
   }
 }"""
 
-	print query_string
+#		print query_string
 
-	response = requests.get(url, data=query_string, headers=headers)
-	print (url)
-	print (response.status_code)
-#	print (response.text)
-	content = json.loads(response.text)
-	print (content["hits"]["total"]["value"])
-	docs = content["hits"]["total"]["value"]
-	for docno in range(0, docs - 1):
-		print (content["hits"]["hits"][docno]["_id"])
+		try:
+			response = requests.get(url, data=query_string, headers=headers)
+
+#			print (url)
+#			print (response.status_code)
+#			print (response.text)
+			content = json.loads(response.text)
+#			print (content["hits"]["total"]["value"])
+			docs = content["hits"]["total"]["value"]
+			for docno in range(0, batch_size):
+#				print (content["hits"]["hits"][docno]["_id"])
+				pass
+		except:
+			cancontinue = 0
+
+		offset += batch_size
 
 
 #    if 0 == (cnt % batch_size):
