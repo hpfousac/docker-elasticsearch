@@ -1,5 +1,16 @@
 #!/bin/bash
 
+#
+# YYYYMM=201906
+# DAY=1
+# while [ ${DAY} -le 31 ] ; do
+#   DD=`printf '%02d' ${DAY}`
+#   echo ${YYYYMM}${DD}
+#   ./feed_wrapper.sh -S kub.ddoubrava.cz -P 30920 -m ${YYYYMM}${DD} -s /server/stage/david/tcpdump/gate/json-out/${YYYYMM} -w /home/david/ramdisk/elk-tests
+#   DAY=`expr ${DAY} + 1`
+# done
+#
+
 export FLAG_VERBOSE=0
 SOURCE_DIR=
 TMP_DIR=/tmp
@@ -119,7 +130,7 @@ for IFACE in xl0 re0 gif0 ;  do
 			JSON_XZ=`basename ${FULL_JSON_XZ}` 
 			JSON=`echo ${JSON_XZ} | sed -e 's/\.xz$//'`
 			nice -19 xz -d < ${FULL_JSON_XZ} > ${TMP_DIR}/${JSON}
-			./feed_bulk.py -f ${TMP_DIR}/${JSON} -s ${ELASTIC_SERVER} -p ${ELASTIC_PORT} -i tcpdump-v2-${DATESTRING} --ingest-pipeline=tcpdump_pipeline &
+			./feed_bulk.py -f ${TMP_DIR}/${JSON} -s ${ELASTIC_SERVER} -p ${ELASTIC_PORT} -i tcpdump-v2-${DATESTRING} --ingest-pipeline=tcpdump_v1-v2_pipeline &
 			sleep 1
 		done
 		wait

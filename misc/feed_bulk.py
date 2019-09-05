@@ -1,4 +1,4 @@
-#!/usr/bin/python2.7
+#!/usr/bin/python3.4
 
 import sys
 import getopt
@@ -7,7 +7,7 @@ import requests
 flag_verbose = False
 elastic_server = "localhost"
 elastic_port = "9200"
-batch_size   = 100
+batch_size   = 200
 ingest_pipeline = ""
 
 #print 'ARGV      :', sys.argv[1:]
@@ -60,15 +60,14 @@ bulk_string = index_line
 for cnt, line in enumerate(fp):
 #   print("Line {}: {}".format(cnt, line.strip()))
     bulk_string = bulk_string + "\n" + line
-    if 0 == (cnt % batch_size):
+    if (batch_size - 1) == (cnt % batch_size):
         print ("Send at line:" + str(cnt))
-        print (bulk_string)
+#       print (bulk_string)
         response = requests.post(url, data=bulk_string, headers=headers)
+        print (str(response.status_code) + ";" + response.text)
         bulk_string = index_line
     else:
         bulk_string = bulk_string + index_line
-#   cnt += 1
-#   response = requests.post(url, data=line, headers=headers)
 #   print (response.status_code)
 #   if 201 == response.status_code:
 #       if True == flag_verbose:

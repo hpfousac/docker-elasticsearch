@@ -1,7 +1,11 @@
-#!/usr/bin/python2.7
+#!/usr/bin/python3.4
 
 import sys
 import getopt
+
+import time
+import datetime
+
 import requests
 import json
 
@@ -36,15 +40,21 @@ for opt, arg in options:
         flag_verbose = True
 
 
+def traceLog(message):
+    if (True == flag_verbose):
+        strtime = datetime.datetime.fromtimestamp(time.time()).strftime('%Y %m %d - %H:%M:%S')
+        print(strtime + ' TRACE: ' + message + '\n')
+		
+
 YYYY = datespec[0:4]
 MM   = datespec[4:6]
 DD   = datespec[6:8]
 
-print (YYYY + ":" + MM + ":" + DD)
+traceLog (YYYY + ":" + MM + ":" + DD)
 
 url = "http://" + elastic_server + ":" + elastic_port + "/" + elastic_index + "/_search"
 
-print (url)
+traceLog (url)
 
 headers = {"Content-Type": "application/json", "Cache-Control": "no-cache"}
 
@@ -58,12 +68,18 @@ startsecs = 0
 endsecs   = 3600 * 24
 secsincrement = 5
 
-def tsstring(YYYY, MM, DD, daysecs):
-	S = daysecs % 60
-	M = (daysecs / 60) % 60
-	H = (daysecs / 3600) % 24
+def tsstring (YYYY, MM, DD, daysecs):
+	S = int(daysecs % 60)
+	M = int((daysecs / 60) % 60)
+	H = int((daysecs / 3600) % 24)
 	return '{}-{}-{}T{:02d}:{:02d}:{:02d}'.format(YYYY, MM, DD, H, M, S)
 
+def processDoc (doc):
+	traceLog (doc)
+	traceLog (content["hits"]["hits"][docno]["_id"])
+	sys.exit (1)
+
+	
 for secs in range(startsecs, endsecs, secsincrement):
 	offset = 0
 	cancontinue = 1
@@ -93,20 +109,20 @@ for secs in range(startsecs, endsecs, secsincrement):
   }
 }"""
 
-#		print query_string
+#		traceLog (query_string)
 
 		try:
 			response = requests.get(url, data=query_string, headers=headers)
 
 #			print (url)
 #			print (response.status_code)
-#			print (response.text)
 			content = json.loads(response.text)
-#			print (content["hits"]["total"]["value"])
+			traceLog (content)
+#			traceLog (content["hits"]["total"]["value"])
 			docs = content["hits"]["total"]["value"]
 			for docno in range(0, batch_size):
-#				print (content["hits"]["hits"][docno]["_id"])
-				pass
+				doc = content["hits"]["hits"][docno]
+				processDoc (doc)
 		except:
 			cancontinue = 0
 
