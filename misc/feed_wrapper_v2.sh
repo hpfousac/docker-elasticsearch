@@ -146,6 +146,7 @@ for IFACE in xl0 re0 gif0 ;  do
 		done
 		HOUR=`expr ${HOUR} + 1`
 	done
+	sleep 27
 done
 
 wait
