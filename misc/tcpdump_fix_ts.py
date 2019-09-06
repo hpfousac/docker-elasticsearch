@@ -1,5 +1,6 @@
-#!/usr/bin/python3.4
+#!/usr/bin/python3
 
+import os
 import sys
 import getopt
 
@@ -43,7 +44,7 @@ for opt, arg in options:
 def traceLog(message):
     if (True == flag_verbose):
         strtime = datetime.datetime.fromtimestamp(time.time()).strftime('%Y %m %d - %H:%M:%S')
-        print(strtime + ' TRACE: ' + message + '\n')
+        print(strtime + ' TRACE: ' + str(message) + '\n')
 		
 
 YYYY = datespec[0:4]
@@ -65,8 +66,8 @@ bulk_string = index_line
 #print line
 
 startsecs = 0
-endsecs   = 3600 * 24
-secsincrement = 5
+endsecs   = 3600 * 6
+secsincrement = 900
 
 def tsstring (YYYY, MM, DD, daysecs):
 	S = int(daysecs % 60)
@@ -87,6 +88,9 @@ for secs in range(startsecs, endsecs, secsincrement):
 #	print tsstring(YYYY, MM, DD, secs)
 
 	while 0 != cancontinue:
+		start_ts = tsstring(YYYY, MM, DD, secs)
+		end_ts = tsstring(YYYY, MM, DD, secs + secsincrement - 1)
+		traceLog ("start_ts=" + start_ts + "; end_ts=" + end_ts )
 		query_string = """{
   "size" : """ + str(batch_size) + """,
   "from" : """ + str(offset) + """,
@@ -98,8 +102,8 @@ for secs in range(startsecs, endsecs, secsincrement):
         {
           "range": {
             "timestamp": {
-              "gte": \"""" + tsstring(YYYY, MM, DD, secs) + """\",
-              "lte": \"""" + tsstring(YYYY, MM, DD, secs + secsincrement - 1) + """\"
+              "gte": \"""" + start_ts + """\",
+              "lte": \"""" + end_ts + """\"
             }
           }
         }
@@ -114,16 +118,21 @@ for secs in range(startsecs, endsecs, secsincrement):
 		try:
 			response = requests.get(url, data=query_string, headers=headers)
 
-#			print (url)
+			traceLog (url)
 #			print (response.status_code)
 			content = json.loads(response.text)
-			traceLog (content)
-#			traceLog (content["hits"]["total"]["value"])
-			docs = content["hits"]["total"]["value"]
+#			traceLog (str(content))
+			traceLog (str(content["hits"]["total"]["value"]))
+#			docs = content["hits"]["total"]["value"]
 			for docno in range(0, batch_size):
 				doc = content["hits"]["hits"][docno]
 				processDoc (doc)
-		except:
+				pass
+		except Exception as e:
+			print (str(e))
+			exc_type, exc_obj, exc_tb = sys.exc_info()
+			fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+			print(exc_type, fname, exc_tb.tb_lineno)
 			cancontinue = 0
 
 		offset += batch_size
