@@ -40,12 +40,10 @@ for opt, arg in options:
     elif opt in ('-v', '--verbose'):
         flag_verbose = True
 
-
 def traceLog(message):
-    if (True == flag_verbose):
-        strtime = datetime.datetime.fromtimestamp(time.time()).strftime('%Y %m %d - %H:%M:%S')
-        print(strtime + ' TRACE: ' + str(message) + '\n')
-		
+	if (True == flag_verbose):
+		strtime = datetime.datetime.fromtimestamp(time.time()).strftime('%Y %m %d - %H:%M:%S')
+		print (strtime + ' TRACE: ' + str(message) + '\n')
 
 YYYY = datespec[0:4]
 MM   = datespec[4:6]
@@ -53,9 +51,11 @@ DD   = datespec[6:8]
 
 traceLog (YYYY + ":" + MM + ":" + DD)
 
-url = "http://" + elastic_server + ":" + elastic_port + "/" + elastic_index + "/_search"
+search_url = "http://" + elastic_server + ":" + elastic_port + "/" + elastic_index + "/_search"
+bulk_url   = "http://" + elastic_server + ":" + elastic_port + "/_bulk"
 
-traceLog (url)
+traceLog ("search_url=" + search_url)
+traceLog ("bulk_url="   + bulk_url)
 
 headers = {"Content-Type": "application/json", "Cache-Control": "no-cache"}
 
@@ -76,10 +76,38 @@ def tsstring (YYYY, MM, DD, daysecs):
 	return '{}-{}-{}T{:02d}:{:02d}:{:02d}'.format(YYYY, MM, DD, H, M, S)
 
 def processDoc (doc):
-	traceLog (doc)
-	traceLog (content["hits"]["hits"][docno]["_id"])
-	sys.exit (1)
+	traceLog ("doc=" + str(doc))
+	doc_id = str(doc["_id"])
+#	traceLog ("id=" + doc_id)
 
+	line = doc["_source"]["line"]
+	es_index = doc["_index"]
+	line_ts = line.split (' ')[0]
+#	traceLog ("line_ts=" + line_ts + "; es_index=" + es_index)
+	line_ts_HH, line_ts_MM, line_ts_SEC = line_ts.split(':')
+#	traceLog ("line_ts_HH=" + line_ts_HH + "; line_ts_MM=" + line_ts_MM + "; line_ts_SEC=" + line_ts_SEC)
+
+	index_ts = es_index.split('-')[2]
+#	traceLog ("index_ts=" + index_ts)
+	index_YYYY = index_ts[0:4]
+	index_MM   = index_ts[4:6]
+	index_DD   = index_ts[6:8]
+
+	upd_line1 = '{"update":{"_id":"' + doc_id + '","_index":"' + es_index + '"}}'
+	upd_line2 = '{"doc":{"timestamp" : "' + index_YYYY + '-' + index_MM + '-' + index_DD + 'T' + line_ts_HH + ':' + line_ts_MM + ":" + line_ts_SEC + '+00:00"}}'
+
+#	traceLog (upd_line1)
+#	traceLog (upd_line2)
+
+	bulk_update_line = upd_line1 + "\n" + upd_line2 + "\n"
+#	response = requests.post(bulk_url, data=bulk_update_line,g headers=headers)
+#	traceLog ("update_response=" + str(response.status_code))
+	return bulk_update_line
+
+def doBulkUpdate (update_batch):
+	traceLog ("doBulkUpdate (" + update_batch + ")")
+	response = requests.post(bulk_url, data=update_batch, headers=headers)
+	traceLog ("update_response=" + str(response.status_code))
 	
 for secs in range(startsecs, endsecs, secsincrement):
 	offset = 0
@@ -116,46 +144,31 @@ for secs in range(startsecs, endsecs, secsincrement):
 #		traceLog (query_string)
 
 		try:
-			response = requests.get(url, data=query_string, headers=headers)
+			response = requests.get(search_url, data=query_string, headers=headers)
 
-			traceLog (url)
+#			traceLog (search_url)
 #			print (response.status_code)
 			content = json.loads(response.text)
 #			traceLog (str(content))
 			traceLog (str(content["hits"]["total"]["value"]))
 #			docs = content["hits"]["total"]["value"]
+			update_batch = ""
 			for docno in range(0, batch_size):
 				doc = content["hits"]["hits"][docno]
-				processDoc (doc)
+				update_batch += processDoc (doc)
 				pass
+			doBulkUpdate (update_batch)
+#			traceLog ("update_batch=" + update_batch)
+
 		except Exception as e:
 			print (str(e))
 			exc_type, exc_obj, exc_tb = sys.exc_info()
 			fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
 			print(exc_type, fname, exc_tb.tb_lineno)
 			cancontinue = 0
+#			traceLog ("update_batch=" + update_batch)
+			doBulkUpdate (update_batch)
+#			sys.exit (0);
 
 		offset += batch_size
 
-
-#    if 0 == (cnt % batch_size):
-#       print ("Send at line:" + str(cnt))
-#       print (bulk_string)
-#       response = requests.post(url, data=bulk_string, headers=headers)
-#       bulk_string = index_line
-#   else:
-#       bulk_string = bulk_string + index_line
-#   cnt += 1
-#   response = requests.post(url, data=line, headers=headers)
-#   print (response.status_code)
-#   if 201 == response.status_code:
-#       if True == flag_verbose:
-#           print ("OK")
-#   else:
-#       print ("ERR:" + line)
-#       frej.write (line)
-
-#print ("Send at line:" + str(cnt))
-#print (bulk_string)
-
-#
