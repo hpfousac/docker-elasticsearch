@@ -7,7 +7,7 @@ import requests
 flag_verbose = False
 elastic_server = "localhost"
 elastic_port = "9200"
-batch_size   = 100
+batch_size   = 200
 ingest_pipeline = ""
 
 #print 'ARGV      :', sys.argv[1:]
