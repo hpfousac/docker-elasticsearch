@@ -57,17 +57,10 @@ bulk_string = index_line
 #print line
 
 
-for cnt, line in enumerate(fp):
-#   print("Line {}: {}".format(cnt, line.strip()))
-    bulk_string = bulk_string + "\n" + line
-    if (batch_size - 1) == (cnt % batch_size):
-        print ("Send at line:" + str(cnt))
-#       print (bulk_string)
-        response = requests.post(url, data=bulk_string, headers=headers)
-        print (str(response.status_code) + ";" + response.text)
-        bulk_string = index_line
-    else:
-        bulk_string = bulk_string + index_line
+def sendBulk (url, headers, bulk_string):
+    response = requests.post(url, data=bulk_string, headers=headers)
+    print (str(response.status_code) + ";" + response.text)
+    bulk_string = ""
 #   print (response.status_code)
 #   if 201 == response.status_code:
 #       if True == flag_verbose:
@@ -76,8 +69,19 @@ for cnt, line in enumerate(fp):
 #       print ("ERR:" + line)
 #       frej.write (line)
 
+
+for cnt, line in enumerate(fp):
+#   print("Line {}: {}".format(cnt, line.strip()))
+    bulk_string = bulk_string + index_line + "\n" + line
+    if (batch_size - 1) == (cnt % batch_size):
+        print ("Send at line:" + str(cnt))
+#       print (bulk_string)
+        sendBulk (url, headers, bulk_string)
+        bulk_string = ""
+
 print ("Send at line:" + str(cnt))
 print (bulk_string)
+sendBulk (url, headers, bulk_string)
 
 fp.close ()
 frej.close ()
