@@ -10,6 +10,10 @@ import datetime
 import requests
 import json
 
+# pip install elasticsearch
+from elasticsearch import Elasticsearch
+from elasticsearch.helpers import scan
+
 flag_verbose = False
 elastic_server = "localhost"
 elastic_port = "9200"
@@ -17,8 +21,7 @@ batch_size   = 100
 datespec = ""
 
 #print 'ARGV      :', sys.argv[1:]
-options, remainder = getopt.getopt(sys.argv[1:], 'f:s:p:i:v', ['input-fn=', 
-                                                         'elastic-server=',
+options, remainder = getopt.getopt(sys.argv[1:], 's:p:i:v', ['elastic-server=',
                                                          'elastic-port=', 'port=',
                                                          'datespec=',
                                                          'elastic-index=',
@@ -27,9 +30,7 @@ options, remainder = getopt.getopt(sys.argv[1:], 'f:s:p:i:v', ['input-fn=',
 #print 'OPTIONS   :', options
 
 for opt, arg in options:
-    if opt in ('-f', '--input-fn'):
-        input_fn = arg
-    elif opt in ('-s', '--elastic-server'):
+    if opt in ('-s', '--elastic-server'):
         elastic_server = arg
     elif opt in ('-p', '--port', '--elastic-port'):
         elastic_port = arg
@@ -43,7 +44,7 @@ for opt, arg in options:
 def traceLog(message):
 	if (True == flag_verbose):
 		strtime = datetime.datetime.fromtimestamp(time.time()).strftime('%Y %m %d - %H:%M:%S')
-		print (strtime + ' TRACE: ' + str(message) + '\n')
+		print (strtime + ' TRACE: ' + str(message))
 
 YYYY = datespec[0:4]
 MM   = datespec[4:6]
@@ -56,6 +57,8 @@ bulk_url   = "http://" + elastic_server + ":" + elastic_port + "/_bulk"
 
 traceLog ("search_url=" + search_url)
 traceLog ("bulk_url="   + bulk_url)
+
+es = Elasticsearch(["http://" + elastic_server + ":" + elastic_port])
 
 headers = {"Content-Type": "application/json", "Cache-Control": "no-cache"}
 
@@ -96,79 +99,82 @@ def processDoc (doc):
 	upd_line1 = '{"update":{"_id":"' + doc_id + '","_index":"' + es_index + '"}}'
 	upd_line2 = '{"doc":{"timestamp" : "' + index_YYYY + '-' + index_MM + '-' + index_DD + 'T' + line_ts_HH + ':' + line_ts_MM + ":" + line_ts_SEC + '+00:00"}}'
 
-#	traceLog (upd_line1)
-#	traceLog (upd_line2)
+	traceLog (upd_line1)
+	traceLog (upd_line2)
 
 	bulk_update_line = upd_line1 + "\n" + upd_line2 + "\n"
-#	response = requests.post(bulk_url, data=bulk_update_line,g headers=headers)
-#	traceLog ("update_response=" + str(response.status_code))
 	return bulk_update_line
 
 def doBulkUpdate (update_batch):
 	traceLog ("doBulkUpdate (" + update_batch + ")")
 	response = requests.post(bulk_url, data=update_batch, headers=headers)
 	traceLog ("update_response=" + str(response.status_code))
-	
+
+def processBatch (batch):
+	update_batch = ""
+	for doc in batch:
+		update_batch += processDoc (doc)
+
+#	try:
+	traceLog ("update_batch=" + update_batch)
+	doBulkUpdate (update_batch)
+
+# 	except Exception as e:
+# 				print (str(e))
+# 				exc_type, exc_obj, exc_tb = sys.exc_info()
+# 				fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+# 				print(exc_type, fname, exc_tb.tb_lineno)
+# 				cancontinue = 0
+# #				traceLog ("update_batch=" + update_batch)
+# 				doBulkUpdate (update_batch)
+# #				sys.exit (0);
+
+
+
+
+
 for secs in range(startsecs, endsecs, secsincrement):
 	offset = 0
 	cancontinue = 1
 #	print (secs)
 #	print tsstring(YYYY, MM, DD, secs)
 
-	while 0 != cancontinue:
-		start_ts = tsstring(YYYY, MM, DD, secs)
-		end_ts = tsstring(YYYY, MM, DD, secs + secsincrement - 1)
-		traceLog ("start_ts=" + start_ts + "; end_ts=" + end_ts )
-		query_string = """{
-  "size" : """ + str(batch_size) + """,
-  "from" : """ + str(offset) + """,
-  "stored_fields": [ "_index", "_id" ],
-  "_source": [ "timestamp", "line" ],
-  "query": {
+	start_ts = tsstring(YYYY, MM, DD, secs)
+	end_ts = tsstring(YYYY, MM, DD, secs + secsincrement - 1)
+	traceLog ("start_ts=" + start_ts + "; end_ts=" + end_ts )
+
+	res = es.search (index=elastic_index, body={"query": {
     "bool": {
       "filter": [
         {
           "range": {
             "timestamp": {
-              "gte": \"""" + start_ts + """\",
-              "lte": \"""" + end_ts + """\"
+              "gte": start_ts,
+              "lte": end_ts
             }
           }
         }
-
-      ]
+       ]
     }
   }
-}"""
+ }, size=batch_size, scroll='2m'
+)
 
-#		traceLog (query_string)
+	traceLog ("res=" + str(res))
 
-		try:
-			response = requests.get(search_url, data=query_string, headers=headers)
+	sid = res['_scroll_id']
+	scroll_size = len(res['hits']['hits'])
 
-#			traceLog (search_url)
-#			print (response.status_code)
-			content = json.loads(response.text)
-#			traceLog (str(content))
-			traceLog (str(content["hits"]["total"]["value"]))
-#			docs = content["hits"]["total"]["value"]
-			update_batch = ""
-			for docno in range(0, batch_size):
-				doc = content["hits"]["hits"][docno]
-				update_batch += processDoc (doc)
-				pass
-			doBulkUpdate (update_batch)
-#			traceLog ("update_batch=" + update_batch)
+	while scroll_size > 0:
 
-		except Exception as e:
-			print (str(e))
-			exc_type, exc_obj, exc_tb = sys.exc_info()
-			fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-			print(exc_type, fname, exc_tb.tb_lineno)
-			cancontinue = 0
-#			traceLog ("update_batch=" + update_batch)
-			doBulkUpdate (update_batch)
-#			sys.exit (0);
+		processBatch (res['hits']['hits'])
 
-		offset += batch_size
+		res = es.scroll(scroll_id=sid, scroll='2m')
+
+		# Update the scroll ID
+		sid = res['_scroll_id']
+
+		# Get the number of results that returned in the last scroll
+		scroll_size = len(res['hits']['hits'])
+
 
