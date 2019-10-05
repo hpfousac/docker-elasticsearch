@@ -180,18 +180,22 @@ for secs in range(startsecs, endsecs, secsincrement):
 	traceLog ("res=" + str(res))
 
 	sid = res['_scroll_id']
+	traceLog ("_scroll_id=" + sid)
 	scroll_size = len(res['hits']['hits'])
 
 	while scroll_size > 0:
 
 		processBatch (res['hits']['hits'])
 
-		res = esReader.scroll(scroll_id=sid, scroll='2m')
+		res = esReader.scroll(scroll_id=sid, scroll='1m')
 
 		# Update the scroll ID
 		sid = res['_scroll_id']
+		traceLog ("_scroll_id=" + sid)
 
 		# Get the number of results that returned in the last scroll
 		scroll_size = len(res['hits']['hits'])
+
+	esReader.clear_scroll (scroll_id=sid)
 
 
