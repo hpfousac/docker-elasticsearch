@@ -14,6 +14,10 @@ import json
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import scan
 
+## scrolling example:
+## https://gist.github.com/hmldd/44d12d3a61a8d8077a3091c4ff7b9307
+##
+
 flag_verbose = False
 elastic_server = "localhost"
 elastic_port = "9200"
@@ -58,18 +62,13 @@ bulk_url   = "http://" + elastic_server + ":" + elastic_port + "/_bulk"
 traceLog ("search_url=" + search_url)
 traceLog ("bulk_url="   + bulk_url)
 
-es = Elasticsearch(["http://" + elastic_server + ":" + elastic_port])
+esReader = Elasticsearch(["http://" + elastic_server + ":" + elastic_port])
+esWriter = Elasticsearch(["http://" + elastic_server + ":" + elastic_port])
 
 headers = {"Content-Type": "application/json", "Cache-Control": "no-cache"}
 
-index_line = '{ "index" : {}}'
-bulk_string = index_line
-# + "\n" + "line 2"
-
-#print line
-
 startsecs = 0
-endsecs   = 3600 * 6
+endsecs   = 3600 * 24
 secsincrement = 900
 
 def tsstring (YYYY, MM, DD, daysecs):
@@ -84,6 +83,14 @@ def processDoc (doc):
 #	traceLog ("id=" + doc_id)
 
 	line = doc["_source"]["line"]
+	doc_timestamp    = doc["_source"]["timestamp"]
+#	doc_timestamp_ms = doc["_source"]["timestamp_ms"]
+
+	traceLog ("line=" + line)
+	traceLog ("timestamp    =" + doc_timestamp)
+#	traceLog ("timestamp_ms=" + doc_timestamp_ms)
+
+
 	es_index = doc["_index"]
 	line_ts = line.split (' ')[0]
 #	traceLog ("line_ts=" + line_ts + "; es_index=" + es_index)
@@ -96,19 +103,28 @@ def processDoc (doc):
 	index_MM   = index_ts[4:6]
 	index_DD   = index_ts[6:8]
 
-	upd_line1 = '{"update":{"_id":"' + doc_id + '","_index":"' + es_index + '"}}'
-	upd_line2 = '{"doc":{"timestamp" : "' + index_YYYY + '-' + index_MM + '-' + index_DD + 'T' + line_ts_HH + ':' + line_ts_MM + ":" + line_ts_SEC + '+00:00"}}'
+	new_timestamp = index_YYYY + '-' + index_MM + '-' + index_DD + 'T' + line_ts_HH + ':' + line_ts_MM + ":" + line_ts_SEC + '+00:00'
+	traceLog ("new_timestamp=" + new_timestamp)
 
-	traceLog (upd_line1)
-	traceLog (upd_line2)
+	if doc_timestamp == new_timestamp:
+		traceLog ("TS Update not needed")
+		return ""
+	else:
+		upd_line1 = '{"update":{"_id":"' + doc_id + '","_index":"' + es_index + '"}}'
+		upd_line2 = '{"doc":{"timestamp" : "' + new_timestamp + '"}}'
 
-	bulk_update_line = upd_line1 + "\n" + upd_line2 + "\n"
-	return bulk_update_line
+		traceLog (upd_line1)
+		traceLog (upd_line2)
+
+		bulk_update_line = upd_line1 + "\n" + upd_line2 + "\n"
+
+		return bulk_update_line
 
 def doBulkUpdate (update_batch):
 	traceLog ("doBulkUpdate (" + update_batch + ")")
-	response = requests.post(bulk_url, data=update_batch, headers=headers)
-	traceLog ("update_response=" + str(response.status_code))
+#	response = requests.post(bulk_url, data=update_batch, headers=headers)
+#	traceLog ("update_response=" + str(response.status_code))
+	esWriter.bulk (body=update_batch)
 
 def processBatch (batch):
 	update_batch = ""
@@ -116,8 +132,9 @@ def processBatch (batch):
 		update_batch += processDoc (doc)
 
 #	try:
-	traceLog ("update_batch=" + update_batch)
-	doBulkUpdate (update_batch)
+	if "" != update_batch:
+		traceLog ("update_batch=" + update_batch)
+		doBulkUpdate (update_batch)
 
 # 	except Exception as e:
 # 				print (str(e))
@@ -143,7 +160,7 @@ for secs in range(startsecs, endsecs, secsincrement):
 	end_ts = tsstring(YYYY, MM, DD, secs + secsincrement - 1)
 	traceLog ("start_ts=" + start_ts + "; end_ts=" + end_ts )
 
-	res = es.search (index=elastic_index, body={"query": {
+	res = esReader.search (index=elastic_index, body={"query": {
     "bool": {
       "filter": [
         {
@@ -169,7 +186,7 @@ for secs in range(startsecs, endsecs, secsincrement):
 
 		processBatch (res['hits']['hits'])
 
-		res = es.scroll(scroll_id=sid, scroll='2m')
+		res = esReader.scroll(scroll_id=sid, scroll='2m')
 
 		# Update the scroll ID
 		sid = res['_scroll_id']
