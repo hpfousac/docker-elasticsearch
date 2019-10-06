@@ -21,7 +21,7 @@ from elasticsearch.helpers import scan
 flag_verbose = False
 elastic_server = "localhost"
 elastic_port = "9200"
-batch_size   = 100
+bulk_size   = 100
 datespec = ""
 
 #print 'ARGV      :', sys.argv[1:]
@@ -174,7 +174,7 @@ for secs in range(startsecs, endsecs, secsincrement):
        ]
     }
   }
- }, size=batch_size, scroll='2m'
+ }, size=bulk_size, scroll='2m'
 )
 
 	traceLog ("res=" + str(res))
