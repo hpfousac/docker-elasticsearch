@@ -25,6 +25,7 @@ gsutil ls ${GS_ROOT}'/tcpdump-*.xz' | while read GSNAME ; do
     echo xz -d ${BASENAME}
     echo ./tcpdump2es_v3.py -d ${DAY}.${MONTH}.${YEAR} -A -i tcpdump-v3- -b 10 -H gate -I ${IFACE} -f ${SHORTNAME}
     echo rm -v ${SHORTNAME}
+    echo gsutil rm ${GSNAME}
 done
 
 wait
