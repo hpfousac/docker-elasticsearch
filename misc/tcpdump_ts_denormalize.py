@@ -21,7 +21,7 @@ from elasticsearch.helpers import scan
 flag_verbose = False
 elastic_server = "localhost"
 elastic_port = "9200"
-bulk_size   = 100
+batch_size   = 100
 datespec = ""
 
 #print 'ARGV      :', sys.argv[1:]
@@ -87,9 +87,6 @@ def processDoc (doc):
 #	doc_timestamp_ms = doc["_source"]["timestamp_ms"]
 
 	traceLog ("line=" + line)
-	traceLog ("timestamp    =" + doc_timestamp)
-#	traceLog ("timestamp_ms=" + doc_timestamp_ms)
-
 
 	es_index = doc["_index"]
 	line_ts = line.split (' ')[0]
@@ -103,22 +100,18 @@ def processDoc (doc):
 	index_MM   = index_ts[4:6]
 	index_DD   = index_ts[6:8]
 
-	new_timestamp = index_YYYY + '-' + index_MM + '-' + index_DD + 'T' + line_ts_HH + ':' + line_ts_MM + ":" + line_ts_SEC + '+00:00'
-	traceLog ("new_timestamp=" + new_timestamp)
+	weekday = datetime.date(int(index_YYYY), int(index_MM), int(index_DD)).weekday()
 
-	if doc_timestamp == new_timestamp:
-		traceLog ("TS Update not needed")
-		return ""
-	else:
-		upd_line1 = '{"update":{"_id":"' + doc_id + '","_index":"' + es_index + '"}}'
-		upd_line2 = '{"doc":{"timestamp" : "' + new_timestamp + '"}}'
+	upd_line1 = '{"update":{"_id":"' + doc_id + '","_index":"' + es_index + '"}}'
+	upd_line2 = '{"doc":{"ts.year" : ' + index_YYYY + ', "ts.month" : ' + str(int(index_MM)) + ', "ts.day" : ' + str(int(index_DD)) + ', "ts.hour" : ' + str(int(line_ts_HH)) + ', "ts.minute" : ' + str(int(line_ts_MM)) + ', "ts.second" : ' + str(int(line_ts_SEC.split('.')[0])) + ', "ts.day_of_week" : ' + str(weekday) +'}}'
 
-		traceLog (upd_line1)
-		traceLog (upd_line2)
+	traceLog (upd_line1)
+	traceLog (upd_line2)
 
-		bulk_update_line = upd_line1 + "\n" + upd_line2 + "\n"
+	bulk_update_line = upd_line1 + "\n" + upd_line2 + "\n"
+	return bulk_update_line
 
-		return bulk_update_line
+#	sys.exit (0)
 
 def doBulkUpdate (update_batch):
 	traceLog ("doBulkUpdate (" + update_batch + ")")
@@ -174,7 +167,7 @@ for secs in range(startsecs, endsecs, secsincrement):
        ]
     }
   }
- }, size=bulk_size, scroll='2m'
+ }, size=batch_size, scroll='2m'
 )
 
 	traceLog ("res=" + str(res))

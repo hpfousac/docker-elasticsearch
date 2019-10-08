@@ -130,16 +130,22 @@ for IFACE in xl0 re0 gif0 ;  do
 			JSON_XZ=`basename ${FULL_JSON_XZ}` 
 			JSON=`echo ${JSON_XZ} | sed -e 's/\.xz$//'`
 			nice -19 xz -d < ${FULL_JSON_XZ} > ${TMP_DIR}/${JSON}
+<<<<<<< HEAD
+			nice -19 ./feed_bulk.py -f ${TMP_DIR}/${JSON} -s ${ELASTIC_SERVER} -p ${ELASTIC_PORT} -i tcpdump-v2-${DATESTRING} --ingest-pipeline=tcpdump_pipeline &
+			sleep 4
+=======
 			./feed_bulk.py -f ${TMP_DIR}/${JSON} -s ${ELASTIC_SERVER} -p ${ELASTIC_PORT} -i tcpdump-v2-${DATESTRING} --ingest-pipeline=tcpdump_v1-v2_pipeline &
 			sleep 1
+>>>>>>> afd615ed6644177f92e62b0990126a37dc7570ff
 		done
 		wait
+		rm -f ${TMP_DIR}/tcpdump-${DATESTRING}-${FILE_HOUR}*.json
 		HOUR=`expr ${HOUR} + 1`
 	done
 done
 
 wait
 
-rm -f ${TMP_DIR}/tcpdump-${DATESTRING}-${FILE_HOUR}*.json
+rm -f ${TMP_DIR}/tcpdump-${DATESTRING}-*.json
 
 exit 0

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #
-# YYYYMM=201906
+# YYYYMM=201908
 # DAY=1
 # while [ ${DAY} -le 31 ] ; do
 #   DD=`printf '%02d' ${DAY}`
