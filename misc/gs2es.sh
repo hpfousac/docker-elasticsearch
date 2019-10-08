@@ -4,8 +4,10 @@
 ## Load from GCE Storage to local ES
 ##
 
-GS_ROOT=gs://eu-mezisklad/gate
-LOCKFILE=${HOME}/.gs2es.lck
+GS_ROOT=gs://eu-mezisklad/gate/${HOSTNAME}
+LOCKFILE=${HOME}/.gs2es.${HOSTNAME}.lck
+
+cd /home/david_doubrava/RaD/source/docker-elasticsearch/misc
 
 if [ -e ${LOCKFILE} ] ; then
   exit 0
@@ -33,3 +35,4 @@ wait
 rm -f ${LOCKFILE}
 
 exit 0
+
