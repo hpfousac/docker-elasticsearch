@@ -10,10 +10,15 @@ elastic_port = "9200"
 batch_size   = 200
 ingest_pipeline = ""
 
+user = ""
+password = ""
+
 #print 'ARGV      :', sys.argv[1:]
-options, remainder = getopt.getopt(sys.argv[1:], 'f:s:p:i:v', ['input-fn=', 
+options, remainder = getopt.getopt(sys.argv[1:], 'f:s:p:i:u:P:v', ['input-fn=', 
                                                          'elastic-server=',
                                                          'elastic-port=', 'port=',
+                                                         'user=', 'login=',
+                                                         'password=', 'pwd=',
                                                          'ingest-pipeline=', 'pipeline=',
                                                          'elastic-index=',
                                                          'verbose'
@@ -31,16 +36,25 @@ for opt, arg in options:
         ingest_pipeline = arg
     elif opt in ('-i', '--elastic-index'):
         elastic_index = arg
+    elif opt in ('-u', '--user', '--login'):
+        user = arg
+    elif opt in ('-P', '--pwd', '--password'):
+        password = arg
     elif opt in ('-v', '--verbose'):
         flag_verbose = True
 
+if ("" != user) and ("" == password):
+    print "both parameters user and password has to be specified"
+    sys.exit (3)
+else:    
+    user = user + ":" + password + "@"
+
 rejected_fn = input_fn + ".rej"
 
-
 if "" == ingest_pipeline:
-	url = "http://" + elastic_server + ":" + elastic_port + "/" + elastic_index + "/_doc/_bulk"
+	url = "http://" + user + elastic_server + ":" + elastic_port + "/" + elastic_index + "/_doc/_bulk"
 else:
-	url = "http://" + elastic_server + ":" + elastic_port + "/" + elastic_index + "/_doc/_bulk?pipeline=" + ingest_pipeline
+	url = "http://" + user + elastic_server + ":" + elastic_port + "/" + elastic_index + "/_doc/_bulk?pipeline=" + ingest_pipeline
 
 print (url)
 
@@ -55,7 +69,6 @@ bulk_string = index_line
 # + "\n" + "line 2"
 
 #print line
-
 
 def sendBulk (url, headers, bulk_string):
     response = requests.post(url, data=bulk_string, headers=headers)
@@ -86,3 +99,4 @@ sendBulk (url, headers, bulk_string)
 fp.close ()
 frej.close ()
 
+sys.exit (0)
