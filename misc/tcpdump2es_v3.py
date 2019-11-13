@@ -276,7 +276,7 @@ def process_file (filename):
 	global elastic_server, elastic_port, bulk_size, es_password, es_user
 
 	if ("" != es_user) and ("" == es_password):
-		print "both parameters user and password has to be specified"
+		print ("both parameters user and password has to be specified")
 		sys.exit (3)
 	else:    
 		es_user = es_user + ":" + es_password + "@"
