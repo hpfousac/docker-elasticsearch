@@ -59,6 +59,7 @@ def error_msg (msg):
 	out_text ("ERROR: " + msg)
 
 def trace_msg (msg):
+	global verbose_flag
 	if True == verbose_flag:
 		out_text ("TRACE: " + msg)
 
