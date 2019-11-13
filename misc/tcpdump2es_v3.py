@@ -358,11 +358,11 @@ for opt, arg in options:
 	elif opt in ('-b', '--bulk-size'):
 		bulk_size = int(arg)
 		trace_msg ("Set elastic index: " + str(bulk_size))
-    elif opt in ('-u', '--user', '--login'):
-        es_user = arg
+	elif opt in ('-u', '--user', '--login'):
+		es_user = arg
 		trace_msg ("Set elastic user: " + es_user)
-    elif opt in ('-P', '--pwd', '--password'):
-        es_password = arg
+	elif opt in ('-P', '--pwd', '--password'):
+		es_password = arg
 		trace_msg ("Set elastic password: " + es_password)
 	elif opt in ('-H', '--collector-host'):
 		collector_host = arg
