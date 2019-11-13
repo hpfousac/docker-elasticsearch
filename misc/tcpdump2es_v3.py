@@ -278,7 +278,7 @@ def process_file (filename):
 	if ("" != es_user) and ("" == es_password):
 		print ("both parameters user and password has to be specified")
 		sys.exit (3)
-	else:    
+	elif ("" != es_user):
 		es_user = es_user + ":" + es_password + "@"
 
 	trace_msg ("process_file (" + filename + ");")
