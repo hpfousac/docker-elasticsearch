@@ -308,7 +308,7 @@ def process_file (filename):
 		esWriter.bulk (body=bulk_string)
 	# esWriter.close ()
 
-options, remainder = getopt.getopt(sys.argv[1:], 'Ab:cd:f:H:I:i:s:p:t:v', ['addsource',
+options, remainder = getopt.getopt(sys.argv[1:], 'Ab:cd:f:H:I:i:s:p:t:vu:P:', ['addsource',
 														 'bulk-size=',
 														 'clear-add-tags',
 														 'collector-host=', 'collector='
