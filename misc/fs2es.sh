@@ -19,10 +19,10 @@ ls ${FS_ROOT}/tcpdump-${TS_MASK}-*.xz | while read FNAME ; do
     YEAR=`echo ${YYYYMMDD} | cut -c1-4 | sed -e 's/^0*//'`
     MONTH=`echo ${YYYYMMDD} | cut -c5-6 | sed -e 's/^0*//'`
     DAY=`echo ${YYYYMMDD} | cut -c7-8 | sed -e 's/^0*//'`
-    echo cp ${FNAME} ${TMP}/
-    echo xz -d ${TMP}/${BASENAME}
-    echo ./tcpdump2es_v3.py -d ${DAY}.${MONTH}.${YEAR} -A -i tcpdump-v3- -b 10 -H gate -I ${IFACE} -f ${TMP}/${SHORTNAME}
-    echo rm -v ${TMP}/${SHORTNAME}
+    cp ${FNAME} ${TMP}/
+    xz -d ${TMP}/${BASENAME}
+    ./tcpdump2es_v3.py -d ${DAY}.${MONTH}.${YEAR} -A -i tcpdump-v3- -b 500 -H gate -I ${IFACE} -f ${TMP}/${SHORTNAME}
+    rm -v ${TMP}/${SHORTNAME}
 done
 
 wait
