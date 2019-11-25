@@ -42,6 +42,8 @@ today_sec = datetime.strptime(today, dayTF).timestamp ()
 
 additional_tags = {}
 
+es_user = ""
+es_password = ""
 
 verbose_flag = False
 source_flag = False
@@ -57,6 +59,7 @@ def error_msg (msg):
 	out_text ("ERROR: " + msg)
 
 def trace_msg (msg):
+	global verbose_flag
 	if True == verbose_flag:
 		out_text ("TRACE: " + msg)
 
@@ -270,13 +273,19 @@ def proc_tcpdump_n_line (short_filename, line):
 	return "", ""
 
 def process_file (filename):
-	global elastic_server, elastic_port, bulk_size
+	global elastic_server, elastic_port, bulk_size, es_password, es_user
+
+	if ("" != es_user) and ("" == es_password):
+		print ("both parameters user and password has to be specified")
+		sys.exit (3)
+	elif ("" != es_user):
+		es_user = es_user + ":" + es_password + "@"
 
 	trace_msg ("process_file (" + filename + ");")
 	f = open(filename, "r")
 
-	trace_msg ("Openning: " + "http://" + elastic_server + ":" + elastic_port)
-	esWriter = Elasticsearch(["http://" + elastic_server + ":" + elastic_port])
+	trace_msg ("Openning: " + "http://" + es_user + elastic_server + ":" + elastic_port)
+	esWriter = Elasticsearch(["http://" + es_user + elastic_server + ":" + elastic_port])
 
 	bulk_string = ""
 	bulk_items = 0
@@ -300,7 +309,7 @@ def process_file (filename):
 		esWriter.bulk (body=bulk_string)
 	# esWriter.close ()
 
-options, remainder = getopt.getopt(sys.argv[1:], 'Ab:cd:f:H:I:i:s:p:t:v', ['addsource',
+options, remainder = getopt.getopt(sys.argv[1:], 'Ab:cd:f:H:I:i:s:p:t:vu:P:', ['addsource',
 														 'bulk-size=',
 														 'clear-add-tags',
 														 'collector-host=', 'collector='
@@ -309,6 +318,7 @@ options, remainder = getopt.getopt(sys.argv[1:], 'Ab:cd:f:H:I:i:s:p:t:v', ['adds
 														 'elastic-index='
 														 'elastic-port=',
 														 'elastic-server=', 'port=',
+                                                         'user=', 'login=',
 														 'file=',
                                                          'tag=', 'tags=',
                                                          'verbose'
@@ -348,6 +358,12 @@ for opt, arg in options:
 	elif opt in ('-b', '--bulk-size'):
 		bulk_size = int(arg)
 		trace_msg ("Set elastic index: " + str(bulk_size))
+	elif opt in ('-u', '--user', '--login'):
+		es_user = arg
+		trace_msg ("Set elastic user: " + es_user)
+	elif opt in ('-P', '--pwd', '--password'):
+		es_password = arg
+		trace_msg ("Set elastic password: " + es_password)
 	elif opt in ('-H', '--collector-host'):
 		collector_host = arg
 		trace_msg ("Set collector host (field: src.host): " + collector_host)
@@ -356,3 +372,5 @@ for opt, arg in options:
 		trace_msg ("Set collector interface (field: src.iface): " + collector_iface)
 
 trace_msg ('remainder:' + str(remainder))
+
+sys.exit (0)
