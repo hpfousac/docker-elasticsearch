@@ -319,6 +319,7 @@ options, remainder = getopt.getopt(sys.argv[1:], 'Ab:cd:f:H:I:i:s:p:t:vu:P:', ['
 														 'elastic-port=',
 														 'elastic-server=', 'port=',
                                                          'user=', 'login=',
+                                                         'pwd=', 'password=',
 														 'file=',
                                                          'tag=', 'tags=',
                                                          'verbose'
