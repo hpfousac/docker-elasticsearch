@@ -31,6 +31,8 @@ elastic_index = "mini-capman"
 es_user = ""
 es_password = ""
 
+sleepTimeout = 2
+
 
 #print 'ARGV      :', sys.argv[1:]
 options, remainder = getopt.getopt(sys.argv[1:], 'f:s:p:i:vu:P:', ['elastic-server=',
@@ -129,14 +131,24 @@ for cnt, line in enumerate(fp):
         bulk_items += 1
         if bulk_size <= bulk_items:
             traceLog ("Writting: " + bulk_string)
-            esWriter.bulk (body=bulk_string)
+            try:
+                esWriter.bulk (body=bulk_string)
 
-            bulk_string = ""
-            bulk_items = 0
+                if sleepTimeout > 2:
+                    sleepTimeout -= 1
+                bulk_string = ""
+                bulk_items = 0
+            except ConnectionTimeout:
+                sleepTimeout *= 2
+                time.sleep (sleepTimeout)
 
-if 0 < bulk_items:
+while 0 < bulk_items:
     traceLog ("Writting: " + bulk_string)
-    esWriter.bulk (body=bulk_string)
+    try:
+        esWriter.bulk (body=bulk_string)
+        bulk_items = 0
+    except ConnectionTimeout:
+        pass
 
 fp.close ()
 
