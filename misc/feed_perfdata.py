@@ -12,7 +12,7 @@ import requests
 import json
 
 # pip install elasticsearch
-from elasticsearch import Elasticsearch
+import elasticsearch
 from elasticsearch.helpers import scan
 
 ## scrolling example:
@@ -62,6 +62,10 @@ for opt, arg in options:
         es_user = arg
     elif opt in ('-P', '--pwd', '--password'):
         es_password = arg
+
+def errorLog(message):
+    strtime = datetime.datetime.fromtimestamp(time.time()).strftime('%Y %m %d - %H:%M:%S')
+    print (strtime + ' ERROR: ' + str(message))
 
 def traceLog(message):
 	if (True == flag_verbose):
@@ -117,7 +121,7 @@ bulk_string = ""
 bulk_items = 0
 
 traceLog ("Openning: " + "http://" + es_user + elastic_server + ":" + elastic_port)
-esWriter = Elasticsearch(["http://" + es_user + elastic_server + ":" + elastic_port])
+esWriter = elasticsearch.Elasticsearch(["http://" + es_user + elastic_server + ":" + elastic_port])
 
 header = {}
 for cnt, line in enumerate(fp):
@@ -138,7 +142,12 @@ for cnt, line in enumerate(fp):
                     sleepTimeout -= 1
                 bulk_string = ""
                 bulk_items = 0
-            except ConnectionTimeout:
+            except elasticsearch.ConnectionTimeout:
+                errorLog("elasticsearch.ConnectionTimeout:" + bulk_string)
+                sleepTimeout *= 2
+                time.sleep (sleepTimeout)
+            except elasticsearch.TransportError:
+                errorLog("elasticsearch.TransportError:" + bulk_string)
                 sleepTimeout *= 2
                 time.sleep (sleepTimeout)
 
@@ -147,7 +156,7 @@ while 0 < bulk_items:
     try:
         esWriter.bulk (body=bulk_string)
         bulk_items = 0
-    except ConnectionTimeout:
+    except elasticsearch.ConnectionTimeout:
         pass
 
 fp.close ()
