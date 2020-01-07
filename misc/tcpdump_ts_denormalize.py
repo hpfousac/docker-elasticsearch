@@ -11,7 +11,8 @@ import requests
 import json
 
 # pip install elasticsearch
-from elasticsearch import Elasticsearch
+import elasticsearch
+
 from elasticsearch.helpers import scan
 
 ## scrolling example:
@@ -62,8 +63,8 @@ bulk_url   = "http://" + elastic_server + ":" + elastic_port + "/_bulk"
 traceLog ("search_url=" + search_url)
 traceLog ("bulk_url="   + bulk_url)
 
-esReader = Elasticsearch(["http://" + elastic_server + ":" + elastic_port])
-esWriter = Elasticsearch(["http://" + elastic_server + ":" + elastic_port])
+esReader = elasticsearch.Elasticsearch(["http://" + elastic_server + ":" + elastic_port])
+esWriter = elasticsearch.Elasticsearch(["http://" + elastic_server + ":" + elastic_port])
 
 headers = {"Content-Type": "application/json", "Cache-Control": "no-cache"}
 

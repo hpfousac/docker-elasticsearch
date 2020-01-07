@@ -3,6 +3,7 @@
 import sys
 import getopt
 import requests
+import time
 
 flag_verbose = False
 elastic_server = "localhost"
@@ -12,6 +13,8 @@ ingest_pipeline = ""
 
 user = ""
 password = ""
+
+sleepTimeout = 2
 
 #print 'ARGV      :', sys.argv[1:]
 options, remainder = getopt.getopt(sys.argv[1:], 'f:s:p:i:u:P:v', ['input-fn=', 
@@ -66,6 +69,8 @@ frej = open (rejected_fn, "w")
 
 index_line = '{ "index" : {}}'
 bulk_string = index_line
+bulk_size   = 0
+
 # + "\n" + "line 2"
 
 #print line
@@ -86,15 +91,25 @@ def sendBulk (url, headers, bulk_string):
 for cnt, line in enumerate(fp):
 #   print("Line {}: {}".format(cnt, line.strip()))
     bulk_string = bulk_string + index_line + "\n" + line
-    if (batch_size - 1) == (cnt % batch_size):
+    bulk_size += 1
+    if batch_size <= bulk_size:
         print ("Send at line:" + str(cnt))
 #       print (bulk_string)
-        sendBulk (url, headers, bulk_string)
-        bulk_string = ""
+        try:
+            sendBulk (url, headers, bulk_string)
+            if sleepTimeout > 2:
+                sleepTimeout -= 1
+            bulk_string = ""
+            bulk_size   = 0
 
-print ("Send at line:" + str(cnt))
-print (bulk_string)
-sendBulk (url, headers, bulk_string)
+        except ConnectionTimeout:
+            sleepTimeout *= 2
+            time.sleep (sleepTimeout)
+
+if batch_size > 0:
+    print ("Send at line:" + str(cnt))
+    print (bulk_string)
+    sendBulk (url, headers, bulk_string)
 
 fp.close ()
 frej.close ()
