@@ -106,6 +106,8 @@ startsecs = 0
 endsecs   = 3600 * 24
 secsincrement = 300 # 5 min
 
+bulk_import_head ='{"index" : {"_index" : "' + dst_elastic_index + "-" + datespec + '"}})'
+
 def tsstring (YYYY, MM, DD, daysecs):
 	S = int(daysecs % 60)
 	M = int((daysecs / 60) % 60)
@@ -137,6 +139,8 @@ def processBatch (batch):
 		packets += 1
 
 	return packets, octets
+
+bulk_string = ""
 
 for secs in range(startsecs, endsecs, secsincrement):
 	offset = 0
@@ -199,5 +203,29 @@ for secs in range(startsecs, endsecs, secsincrement):
 
 	esReader.clear_scroll (scroll_id=sid)
 
-	traceLog ("Consolidated: " + start_ts + "; packets=" + str(interval_packets) + ", octets=" + str(interval_octets))
+	record = {}
+	record ["src.host"] = collector_host
+	record ["src.iface"] = collector_iface
+	record ["@timestamp"] = start_ts
+	record ["interval"]   = secsincrement
+
+	record ["ts.year"]    = int (YYYY)
+	record ["ts.month"]   = int (MM)
+	record ["ts.day"]     = int (DD)
+	record ["ts.weekday"] = datetime.date(int(YYYY), int(MM), int(DD)).weekday()
+	record ["ts.hour"]    = int (secs / 3600)
+	record ["ts.minute"]  = int ((secs % 3600) / 60)
+	record ["ts.second"]  = int (secs % 60)
+
+	record ["packets"]    = interval_packets
+	record ["octets"]     = interval_octets
+
+	bulk_import_line = json.dumps(record)
+	traceLog ("Consolidated: " + bulk_import_line)
+	bulk_string = bulk_string + bulk_import_head + "\n" + bulk_import_line + "\n"
+
+traceLog ("Writting: " + bulk_string)
+esWriter.bulk (body=bulk_string)
+
+
 
