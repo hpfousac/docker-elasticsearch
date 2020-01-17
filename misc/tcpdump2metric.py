@@ -75,12 +75,12 @@ for opt, arg in options:
         dst_elastic_index = arg
     elif opt in ('-v', '--verbose'):
         flag_verbose = True
-	elif opt in ('-H', '--collector-host'):
-		collector_host = arg
-		# trace_msg ("Set collector host (field: src.host): " + collector_host)
-	elif opt in ('-I', 'collector-iface', 'iface', 'collector-interface', 'interface'):
-		collector_iface = arg
-		# trace_msg ("Set collector interface (field: src.iface): " + collector_iface)
+    elif opt in ('-H', '--collector-host'):
+        collector_host = arg
+# trace_msg ("Set collector host (field: src.host): " + collector_host)
+    elif opt in ('-I', 'collector-iface', 'iface', 'collector-interface', 'interface'):
+        collector_iface = arg
+# trace_msg ("Set collector interface (field: src.iface): " + collector_iface)
 
 def traceLog(message):
 	if (True == flag_verbose):
