@@ -53,7 +53,7 @@ def trace_msg (msg):
 		out_text ("TRACE: " + msg)
 
 #print 'ARGV      :', sys.argv[1:]
-options, remainder = getopt.getopt(sys.argv[1:], 'S:P:i:o:v', ['elastic-server=',
+options, remainder = getopt.getopt(sys.argv[1:], 'S:P:H:I:i:o:v', ['elastic-server=',
                                                          'elastic-port=', 'port=',
                                                          'datespec=',
                                                          'src-elastic-index=', 'src-index=',
@@ -93,7 +93,7 @@ DD   = datespec[6:8]
 
 traceLog (YYYY + ":" + MM + ":" + DD)
 
-search_url = "http://" + elastic_server + ":" + elastic_port + "/" + elastic_index + "/_search"
+search_url = "http://" + elastic_server + ":" + elastic_port + "/" + src_elastic_index + "/_search"
 bulk_url   = "http://" + elastic_server + ":" + elastic_port + "/_bulk"
 
 traceLog ("search_url=" + search_url)
@@ -117,11 +117,11 @@ def processDoc (doc):
 	doc_id = str(doc["_id"])
 #	traceLog ("id=" + doc_id)
 
-	line = doc["_source"]["line"]
+	line = doc["_source"]
 	doc_timestamp    = doc["_source"]["timestamp"]
 #	doc_timestamp_ms = doc["_source"]["timestamp_ms"]
 
-	traceLog ("line=" + line)
+	traceLog ("line=" + str(line))
 
 def doBulkUpdate (update_batch):
 	traceLog ("doBulkUpdate (" + update_batch + ")")
@@ -130,7 +130,7 @@ def doBulkUpdate (update_batch):
 def processBatch (batch):
 	update_batch = ""
 	for doc in batch:
-		update_batch += processDoc (doc)
+		processDoc (doc)
 
 for secs in range(startsecs, endsecs, secsincrement):
 	offset = 0
@@ -142,7 +142,7 @@ for secs in range(startsecs, endsecs, secsincrement):
 	end_ts = tsstring(YYYY, MM, DD, secs + secsincrement - 1)
 	traceLog ("start_ts=" + start_ts + "; end_ts=" + end_ts )
 
-	res = esReader.search (index=elastic_index, body={"query": {
+	res = esReader.search (index=src_elastic_index, body={"query": {
 			"bool": {
 				"filter": [
 					{
