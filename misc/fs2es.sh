@@ -10,26 +10,23 @@ ADDITIONAL_OPTS=
 ES_SERVER=localhost
 ES_PORT=9200
 
-TMP_DIR=/home/david/ramdisk/tmp
+TMP_DIR=/tmp
 
-while getopts "c:vs:S:P:m:w:h?" opt; do
+usage () {
+  echo $0 
+}
+
+while getopts "P:S:c:vs:d:w:h?" opt; do
   case $opt in
     h)
       usage
       exit 0
       ;;
-    c)
-      COLLECTOR_HOST=$OPTARG
-      info_msg COLLECTOR_HOST=${COLLECTOR_HOST}
+    v)
+      FLAG_VERBOSE=1
+      ADDITIONAL_OPTS="${ADDITIONAL_OPTS} --verbose"
+      info_msg VERBOSE
 	  ;;
-    m)
-      DATETIME_STAMP=$OPTARG
-      info_msg DATETIME_STAMP=${DATETIME_STAMP}
-	  ;;
-    s)
-      SOURCE_DIR=$OPTARG
-      info_msg SOURCE_DIR=${SOURCE_DIR}
-      ;;
     S)
       ES_SERVER=$OPTARG
       info_msg ES_SERVER=${ES_SERVER}
@@ -38,11 +35,18 @@ while getopts "c:vs:S:P:m:w:h?" opt; do
       ES_PORT=$OPTARG
       info_msg ES_PORT=${ES_PORT}
       ;;
-    v)
-      FLAG_VERBOSE=1
-	  ADDITIONAL_OPTS="${ADDITIONAL_OPTS} --verbose"
-      info_msg VERBOSE
+    c)
+      COLLECTOR_HOST=$OPTARG
+      info_msg COLLECTOR_HOST=${COLLECTOR_HOST}
 	  ;;
+    d)
+      DATETIME_STAMP=$OPTARG
+      info_msg DATETIME_STAMP=${DATETIME_STAMP}
+	  ;;
+    s)
+      SOURCE_DIR=$OPTARG
+      info_msg SOURCE_DIR=${SOURCE_DIR}
+      ;;
     w)
       TMP_DIR=$OPTARG
       info_msg TMP_DIR=${TMP_DIR}
@@ -60,10 +64,10 @@ while getopts "c:vs:S:P:m:w:h?" opt; do
 done
 
 MONTH_MASK=`echo ${DATETIME_STAMP} | cut -c1-6`
-FS_ROOT=/server/stage/david/tcpdump/${COLLECTOR_HOST}/incoming-data/${MONTH_MASK}
+#FS_ROOT=/server/stage/david/tcpdump/${COLLECTOR_HOST}/incoming-data/${MONTH_MASK}
 
 
-ls ${FS_ROOT}/tcpdump-${DATETIME_STAMP}-*.xz | while read FNAME ; do
+ls ${SOURCE_DIR}/tcpdump-${DATETIME_STAMP}-*.xz | while read FNAME ; do
     BASENAME=`basename ${FNAME}`
     SHORTNAME=`echo ${BASENAME} | sed -e 's/\.xz$//'`
     IFACE=`echo ${SHORTNAME} | cut -d- -f4`
