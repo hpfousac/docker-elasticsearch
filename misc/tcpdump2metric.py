@@ -117,20 +117,26 @@ def processDoc (doc):
 	doc_id = str(doc["_id"])
 #	traceLog ("id=" + doc_id)
 
-	line = doc["_source"]
-	doc_timestamp    = doc["_source"]["timestamp"]
+	octets = doc["_source"]["pkt.len"]
+#doc_timestamp    = doc["_source"]["timestamp"]
 #	doc_timestamp_ms = doc["_source"]["timestamp_ms"]
 
-	traceLog ("line=" + str(line))
+#	traceLog ("octets=" + str(octets))
+
+	return int(octets)
 
 def doBulkUpdate (update_batch):
 	traceLog ("doBulkUpdate (" + update_batch + ")")
 	esWriter.bulk (body=update_batch)
 
 def processBatch (batch):
-	update_batch = ""
+	packets = 0
+	octets  = 0
 	for doc in batch:
-		processDoc (doc)
+		octets += processDoc (doc)
+		packets += 1
+
+	return packets, octets
 
 for secs in range(startsecs, endsecs, secsincrement):
 	offset = 0
@@ -173,9 +179,14 @@ for secs in range(startsecs, endsecs, secsincrement):
 	traceLog ("_scroll_id=" + sid)
 	scroll_size = len(res['hits']['hits'])
 
+	interval_octets = 0
+	interval_packets = 0
+
 	while scroll_size > 0:
 
-		processBatch (res['hits']['hits'])
+		packets, octets = processBatch (res['hits']['hits'])
+		interval_packets += packets
+		interval_octets  += octets
 
 		res = esReader.scroll(scroll_id=sid, scroll='1m')
 
@@ -187,4 +198,6 @@ for secs in range(startsecs, endsecs, secsincrement):
 		scroll_size = len(res['hits']['hits'])
 
 	esReader.clear_scroll (scroll_id=sid)
+
+	traceLog ("Consolidated: " + start_ts + "; packets=" + str(interval_packets) + ", octets=" + str(interval_octets))
 
