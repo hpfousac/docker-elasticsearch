@@ -4,18 +4,19 @@
 
 elasticsearch:
   image:
-    repository: sgc-minikube:5000/hpfousac/docker-elasticsearch
-    tag: 6.8.0
+    repository: docker.elastic.co/elasticsearch/elasticsearch
+    tag: 7.5.2
     pullPolicy: IfNotPresent
   service:
-    type: ClusterIP
+    type: NodePort
     port: 9200
+    nodePort: 30920
   data_space: 10Gi
 
 kibana:
   image:
     repository: docker.elastic.co/kibana/kibana
-    tag: 6.8.0
+    tag: 7.5.2
     pullPolicy: IfNotPresent
   service:
     type: NodePort
@@ -24,17 +25,8 @@ kibana:
 
 replicaCount: 1
 
-image:
-  repository: nginx
-  tag: stable
-  pullPolicy: IfNotPresent
-
 nameOverride: ""
 fullnameOverride: ""
-
-service:
-  type: ClusterIP
-  port: 80
 
 ingress:
   enabled: false
