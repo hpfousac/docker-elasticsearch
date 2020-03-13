@@ -10,7 +10,7 @@ elasticsearch:
   service:
     type: NodePort
     port: 9200
-    nodePort: 30920
+    nodePort: 30005
   data_space: 10Gi
 
 kibana:
@@ -21,7 +21,7 @@ kibana:
   service:
     type: NodePort
     port: 5601
-    nodePort: 30601
+    nodePort: 30006
 
 replicaCount: 1
 
