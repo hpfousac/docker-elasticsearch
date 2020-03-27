@@ -12,6 +12,16 @@ ES_PORT=9200
 
 TMP_DIR=/tmp
 
+info_msg () {
+	if [ ! ${FLAG_VERBOSE} = 0 ] ; then
+		echo '** INFO **:' $*
+	fi
+}
+
+error_msg () {
+	echo '** ERROR **:' $*
+}
+
 usage () {
   echo $0 
 }
