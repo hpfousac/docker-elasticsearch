@@ -87,7 +87,11 @@ ls ${SOURCE_DIR}/tcpdump-${DATETIME_STAMP}-*.xz | while read FNAME ; do
     DAY=`echo ${YYYYMMDD} | cut -c7-8 | sed -e 's/^0*//'`
     cp ${FNAME} ${TMP_DIR}/
     xz -d ${TMP_DIR}/${BASENAME}
-    ./tcpdump2es_v3.py -s ${ES_SERVER} -p ${ES_PORT} -d ${DAY}.${MONTH}.${YEAR} -A -i tcpdump-v3- -b 500 -H ${COLLECTOR_HOST} -I ${IFACE} ${ADDITIONAL_OPTS} -f ${TMP_DIR}/${SHORTNAME}
+    if [ "X" = "X${ZIPKIN_URL}" ] ; then
+        ./tcpdump2es_v3.py -s ${ES_SERVER} -p ${ES_PORT} -d ${DAY}.${MONTH}.${YEAR} -A -i tcpdump-v3- -b 500 -H ${COLLECTOR_HOST} -I ${IFACE} ${ADDITIONAL_OPTS} -f ${TMP_DIR}/${SHORTNAME}
+    else
+        ./tcpdump2es_v3_zipkin.py -s ${ES_SERVER} -p ${ES_PORT} -d ${DAY}.${MONTH}.${YEAR} -A -i tcpdump-v3- -b 500 -H ${COLLECTOR_HOST} -I ${IFACE} ${ADDITIONAL_OPTS} -f ${TMP_DIR}/${SHORTNAME}
+    fi
     rm -v ${TMP_DIR}/${SHORTNAME}
 done
 
